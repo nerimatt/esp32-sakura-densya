@@ -8,6 +8,7 @@ def exists(filename):
         return False
 
 # save any errors in sd/errors.txt
+# must be the complete error saved from the logger -> include filename and line
 def error_logger(error) -> bool:
     if not exists("sd/"):
         print("sd card not mounted")

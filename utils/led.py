@@ -4,13 +4,14 @@ from time import sleep
 
 class Led:
     MAX_DUTY_CYCLE = 65535
+    current_val = 100
 
     def __init__(self, pin: int) -> None:
         self.pin = PWM(Pin(pin))
 
         self.pin.freq(1000)
         self.wait()
-        self.set(0)
+        self.set(self.current_val) # start with it turned on
         self.wait()
 
     def wait(self):
@@ -22,6 +23,7 @@ class Led:
             print("percent error")
             return
         
+        self.current_val = percent
         self.pin.duty_u16(self.MAX_DUTY_CYCLE // 100 * percent)
         self.wait()
     
@@ -35,6 +37,12 @@ class Led:
         self.wait()
 
     
+    def off(self):
+        self.set(0)
+        
+    def on(self):
+        self.set(self.current_value)
+    
     def toggle(self):
         self.pin.duty_u16(
             abs(self.pin.duty_u16() - self.MAX_DUTY_CYCLE) if self.pin.duty_u16() in [0, self.MAX_DUTY_CYCLE] else 0
@@ -45,4 +53,3 @@ class Led:
 
 shop_led = Led(33)
 ceiling_led = Led(26)
-

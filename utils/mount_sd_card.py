@@ -12,7 +12,7 @@ def mount_sd_card(folder = "/sd"):
     cs -> g15
     sck -> g4
     mosi -> g17
-    miso -> g18
+    miso -> g18    
 
     """
 
