@@ -12,7 +12,7 @@ from utils.led import ceiling_led, shop_led
 def send_response(conn, body, content_type = "text/plain"):
     if isinstance(body, str):
         body = body.encode("utf-8")
-    
+
     header = (
         b"HTTP/1.1 200 OK\r\n"
         b"Content-Type: " + content_type.encode("utf-8") + b"\r\n"
@@ -22,7 +22,7 @@ def send_response(conn, body, content_type = "text/plain"):
     )
 
     conn.sendall(header + body)
-    
+
 
 def web_server(station):
 
@@ -37,7 +37,7 @@ def web_server(station):
         ceiling_led.set(0)
         shop_led.set(0)
         sleep(0.5)
-        
+
         ceiling_led.set(100)
         shop_led.set(100)
         sleep(0.5)
@@ -47,7 +47,7 @@ def web_server(station):
     while True:
         conn, addr = s.accept()
         # print(f"got a connection from '{addr}'")
-        
+
         try:
             # recieve data (of infinite length)
             request = b""
@@ -58,41 +58,46 @@ def web_server(station):
                 request += chunk
 
             header_bytes, body = request.split(b"\r\n\r\n", 1)
-            
+
             header_text = header_bytes.decode("utf-8")
             header_lines = header_text.split("\r\n")
-            
+
             method, path, protocol = header_lines[0].split()
-            
+
             headers = {}
             for line in header_lines[1:]:
                 if ":" in line:
                     key, value = line.split(":", 1)
                     headers[key.strip().lower()] = value.strip()
-            
+
             content_type = headers.get("content-type")
             content_length = int(headers.get("content-length", "0"))
-            
+
             # Read remaining body bytes, if recv() did not get all of it
             while len(body) < content_length:
                 body += conn.recv(content_length - len(body))
-            
+
             print("recieved request:", method, path, content_type)
             if content_type == 'application/json':
                 data = loads(body.decode("utf-8"))
                 print(data)
-                
+
                 if "ceiling" in data:
                     if data["ceiling"]:
                         ceiling_led.on()
                     else: ceiling_led.off()
-                    
+
                 if "shop" in data:
-                
                     if data["shop"]:
                         shop_led.on()
                     else: shop_led.off()
-                
+
+                if data.get("ceiling-toggle", False):
+                    ceiling_led.toggle()
+
+                if data.get("shop-toggle", False):
+                    shop_led.toggle()
+
                 if "ceiling-brightness" in data:
                     ceiling_led.set(data["ceiling-brightness"])
                 if "shop-brightness" in data:
@@ -105,7 +110,7 @@ def web_server(station):
                 response = create_web_page()
                 send_response(conn, response, "text/html")
 
-            
+
 
         except Exception as e:
             print("server error:", e)
